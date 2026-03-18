@@ -10,8 +10,6 @@ venv/
 *.pt
 
 # Data files
-*.npy
-dataset/
 
 # Environment variables
 .env
@@ -24,4 +22,5 @@ dataset/
 Thumbs.db
 
 *.npy
-data/
+data/*
+!data/.gitkeep
