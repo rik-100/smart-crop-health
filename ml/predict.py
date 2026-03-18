@@ -9,7 +9,7 @@ IMG_SIZE = 224
 
 model = load_model(MODEL_PATH)
 
-def predict_disease(image_path, class_names):
+def predict_disease(image_path):
 
     img = cv2.imread(image_path)
 
@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     IMAGE_PATH = os.path.join(BASE_DIR, "data", "dataset", "test", "Pepper__bell___Bacterial_spot", "0a4c007d-41ab-4659-99cb-8a4ae4d07a55___NREC_B.Spot 1954.JPG")
 
-    pred_class, confidence = predict_disease(IMAGE_PATH, class_names)
+    pred_class, confidence = predict_disease(IMAGE_PATH)
 
     disease = class_names[pred_class].replace("__"," ").replace("_"," ")
 

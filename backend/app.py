@@ -11,6 +11,9 @@ from werkzeug.utils import secure_filename
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+import sys
+if BASE_DIR not in sys.path:
+    sys.path.append(BASE_DIR)
 
 app = Flask(__name__, static_folder=os.path.join(BASE_DIR, "frontend"), static_url_path="")
 CORS(app)
@@ -24,6 +27,13 @@ MODEL_PATH = os.path.join(BASE_DIR, "ml", "models", "best_model.h5")
 DATASET_PATH = os.path.join(BASE_DIR, "data", "dataset", "train")
 IMG_SIZE = 224
 LAST_CONV_LAYER = "Conv_1"
+
+from ml.utils.download_model import download_model_if_not_exists
+
+try:
+    download_model_if_not_exists()
+except Exception as e:
+    print("Failed to download model:", e)
 
 print("Loading model...")
 model = load_model(MODEL_PATH)
