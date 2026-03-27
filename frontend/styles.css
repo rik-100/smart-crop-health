@@ -46,6 +46,17 @@ body {
   overflow-x: hidden;
   min-height: 100vh;
 }
+body.lang-bn {
+  font-family: "Nirmala UI", "Hind Siliguri", var(--font-body);
+}
+body.lang-bn .logo-text,
+body.lang-bn .hero-title,
+body.lang-bn .section-title,
+body.lang-bn .loading-title,
+body.lang-bn .disease-name,
+body.lang-bn .sev-level {
+  font-family: "Nirmala UI", "Hind Siliguri", var(--font-head);
+}
 
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-dark); }
@@ -199,6 +210,39 @@ body {
   transition: all var(--transition);
 }
 .nav-link:hover { color: var(--text-1); background: rgba(255,255,255,0.06); }
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.04);
+}
+.lang-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.lang-btn:hover {
+  color: var(--text-1);
+  background: rgba(255,255,255,0.06);
+}
+.lang-btn.active {
+  background: rgba(74,222,128,0.14);
+  color: var(--green-400);
+}
 .nav-status {
   display: flex;
   align-items: center;
@@ -964,6 +1008,8 @@ body {
   .rec-grid { grid-template-columns: 1fr; }
   .fertilizer-section { grid-column: 1; }
   .nav-links { display: none; }
+  .nav-actions { gap: 8px; }
+  .lang-btn { padding: 6px 10px; }
   .hero-title { font-size: 2.2rem; }
   .phone-mockup { width: 180px; height: 320px; }
 }
