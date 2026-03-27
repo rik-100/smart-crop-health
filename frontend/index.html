@@ -31,14 +31,20 @@
       <span class="logo-text">CropSense <span class="logo-ai">AI</span></span>
     </div>
     <div class="nav-links">
-      <a href="#analyzer" class="nav-link">Analyzer</a>
-      <a href="#how-it-works" class="nav-link">How It Works</a>
-      <a href="#diseases" class="nav-link">Diseases</a>
-      <a href="#about" class="nav-link">About</a>
+      <a href="#analyzer" class="nav-link" data-i18n="nav_analyzer">Analyzer</a>
+      <a href="#how-it-works" class="nav-link" data-i18n="nav_how">How It Works</a>
+      <a href="#diseases" class="nav-link" data-i18n="nav_diseases">Diseases</a>
+      <a href="#about" class="nav-link" data-i18n="nav_about">About</a>
     </div>
-    <div class="nav-status" id="navStatus">
-      <div class="status-dot"></div>
-      <span>Model Online</span>
+    <div class="nav-actions">
+      <div class="lang-toggle" role="group" aria-label="Language selector">
+        <button type="button" class="lang-btn" data-lang="en">EN</button>
+        <button type="button" class="lang-btn" data-lang="bn">বাংলা</button>
+      </div>
+      <div class="nav-status" id="navStatus">
+        <div class="status-dot"></div>
+        <span data-i18n="nav_status_initial">Checking model...</span>
+      </div>
     </div>
   </div>
 </nav>
@@ -59,10 +65,10 @@
       <span>AI-Powered · MobileNetV2 · 15 Classes</span>
     </div>
     <h1 class="hero-title">
-      Detect Crop Disease<br/>
-      <span class="hero-gradient">Instantly with AI</span>
+      <span data-i18n="hero_title_main">Detect Crop Disease</span><br/>
+      <span class="hero-gradient" data-i18n="hero_title_accent">Instantly with AI</span>
     </h1>
-    <p class="hero-subtitle">
+    <p class="hero-subtitle" data-i18n="hero_subtitle">
       Upload a leaf photo and get real-time disease detection, severity analysis, 
       Grad-CAM visualization & expert treatment recommendations — in seconds.
     </p>
@@ -71,13 +77,13 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
         </svg>
-        Analyze a Leaf
+        <span data-i18n="hero_cta_primary">Analyze a Leaf</span>
       </a>
       <a href="#how-it-works" class="btn btn-ghost">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
         </svg>
-        How It Works
+        <span data-i18n="hero_cta_secondary">How It Works</span>
       </a>
     </div>
     <div class="hero-stats">
@@ -131,9 +137,9 @@
 <section class="analyzer-section" id="analyzer">
   <div class="container">
     <div class="section-header">
-      <div class="section-badge">Disease Analyzer</div>
-      <h2 class="section-title">Upload & Analyze</h2>
-      <p class="section-sub">Drop any leaf image from tomatoes, peppers or potatoes for instant AI diagnosis</p>
+      <div class="section-badge" data-i18n="analyzer_badge">Disease Analyzer</div>
+      <h2 class="section-title" data-i18n="analyzer_title">Upload & Analyze</h2>
+      <p class="section-sub" data-i18n="analyzer_sub">Drop any leaf image from tomatoes, peppers or potatoes for instant AI diagnosis</p>
     </div>
 
     <div class="analyzer-grid">
@@ -146,8 +152,8 @@
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
             </svg>
           </div>
-          <h3 class="upload-title">Drop your leaf image here</h3>
-          <p class="upload-sub">or click to browse files</p>
+          <h3 class="upload-title" data-i18n="upload_title">Drop your leaf image here</h3>
+          <p class="upload-sub" data-i18n="upload_sub">or click to browse files</p>
           <div class="upload-formats">
             <span class="format-tag">JPG</span>
             <span class="format-tag">PNG</span>
@@ -159,13 +165,13 @@
               <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
               <polyline points="14 2 14 8 20 8"/>
             </svg>
-            Choose File
+            <span data-i18n="choose_file">Choose File</span>
           </button>
         </div>
 
         <div class="image-preview-panel" id="imagePreviewPanel" style="display:none">
           <div class="preview-header">
-            <span class="preview-label">Selected Image</span>
+            <span class="preview-label" data-i18n="selected_image">Selected Image</span>
             <button class="btn-icon" id="clearBtn" title="Remove">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -180,17 +186,17 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
             </svg>
-            Analyze Now
+            <span data-i18n="analyze_now">Analyze Now</span>
           </button>
         </div>
 
         <!-- Sample crops info -->
         <div class="supported-crops">
-          <p class="crops-label">Supported Crops</p>
+          <p class="crops-label" data-i18n="supported_crops">Supported Crops</p>
           <div class="crops-list">
-            <div class="crop-tag">🌶 Pepper</div>
-            <div class="crop-tag">🥔 Potato</div>
-            <div class="crop-tag">🍅 Tomato</div>
+            <div class="crop-tag">🌶 <span data-i18n="crop_pepper">Pepper</span></div>
+            <div class="crop-tag">🥔 <span data-i18n="crop_potato">Potato</span></div>
+            <div class="crop-tag">🍅 <span data-i18n="crop_tomato">Tomato</span></div>
           </div>
         </div>
       </div>
@@ -210,19 +216,19 @@
                 </svg>
               </div>
             </div>
-            <h3 class="loading-title">Analyzing Leaf...</h3>
+            <h3 class="loading-title" data-i18n="loading_title">Analyzing Leaf...</h3>
             <div class="loading-steps" id="loadingSteps">
               <div class="ls-step active" id="ls1">
-                <div class="ls-dot"></div><span>Processing image</span>
+                <div class="ls-dot"></div><span data-i18n="loading_step_1">Processing image</span>
               </div>
               <div class="ls-step" id="ls2">
-                <div class="ls-dot"></div><span>Running AI model</span>
+                <div class="ls-dot"></div><span data-i18n="loading_step_2">Running AI model</span>
               </div>
               <div class="ls-step" id="ls3">
-                <div class="ls-dot"></div><span>Generating Grad-CAM</span>
+                <div class="ls-dot"></div><span data-i18n="loading_step_3">Generating Grad-CAM</span>
               </div>
               <div class="ls-step" id="ls4">
-                <div class="ls-dot"></div><span>Building recommendations</span>
+                <div class="ls-dot"></div><span data-i18n="loading_step_4">Building recommendations</span>
               </div>
             </div>
           </div>
@@ -243,8 +249,8 @@
               </defs>
             </svg>
           </div>
-          <h3 class="empty-title">Awaiting Analysis</h3>
-          <p class="empty-sub">Upload a leaf image to see the AI diagnosis, severity assessment, and treatment recommendations here.</p>
+          <h3 class="empty-title" data-i18n="empty_title">Awaiting Analysis</h3>
+          <p class="empty-sub" data-i18n="empty_sub">Upload a leaf image to see the AI diagnosis, severity assessment, and treatment recommendations here.</p>
           <div class="empty-features">
             <div class="ef-item"><span>🔬</span> Disease Detection</div>
             <div class="ef-item"><span>🌡️</span> Severity Analysis</div>
@@ -267,7 +273,7 @@
             </div>
             <div class="confidence-section">
               <div class="confidence-header">
-                <span class="conf-label">Confidence</span>
+                <span class="conf-label" data-i18n="confidence_label">Confidence</span>
                 <span class="conf-value" id="confValue">—</span>
               </div>
               <div class="confidence-bar">
@@ -284,7 +290,7 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
                 </svg>
-                <span>Severity Analysis</span>
+                <span data-i18n="severity_analysis">Severity Analysis</span>
               </div>
               <div class="severity-display">
                 <div class="severity-gauge" id="severityGauge">
@@ -316,7 +322,7 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                 </svg>
-                <span>Top Predictions</span>
+                <span data-i18n="top_predictions">Top Predictions</span>
               </div>
               <div class="top-preds" id="topPreds">
                 <!-- filled dynamically -->
@@ -332,7 +338,7 @@
                   <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
                   <polyline points="21 15 16 10 5 21"/>
                 </svg>
-                <span>Original Leaf</span>
+                <span data-i18n="original_leaf">Original Leaf</span>
               </div>
               <div class="img-wrap">
                 <img id="originalImg" src="" alt="Original" />
@@ -343,8 +349,8 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                 </svg>
-                <span>Grad-CAM Heatmap</span>
-                <span class="badge-new">AI Focus Areas</span>
+                <span data-i18n="gradcam_heatmap">Grad-CAM Heatmap</span>
+                <span class="badge-new" data-i18n="ai_focus_areas">AI Focus Areas</span>
               </div>
               <div class="img-wrap">
                 <img id="gradcamImg" src="" alt="Grad-CAM" />
@@ -358,7 +364,7 @@
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
               </svg>
-              <span>Treatment Recommendations</span>
+              <span data-i18n="treatment_recommendations">Treatment Recommendations</span>
               <div class="urgency-badge" id="urgencyBadge">—</div>
             </div>
 
@@ -366,7 +372,7 @@
               <div class="rec-section" id="recImmediate">
                 <div class="rec-section-header">
                   <div class="rec-icon red">⚡</div>
-                  <div class="rec-section-title">Immediate Actions</div>
+                  <div class="rec-section-title" data-i18n="immediate_actions">Immediate Actions</div>
                 </div>
                 <ul class="rec-list" id="immediateList"></ul>
               </div>
@@ -374,7 +380,7 @@
               <div class="rec-section" id="recTreatments">
                 <div class="rec-section-header">
                   <div class="rec-icon amber">💊</div>
-                  <div class="rec-section-title">Treatments</div>
+                  <div class="rec-section-title" data-i18n="treatments">Treatments</div>
                 </div>
                 <ul class="rec-list" id="treatmentList"></ul>
               </div>
@@ -382,7 +388,7 @@
               <div class="rec-section" id="recPrevention">
                 <div class="rec-section-header">
                   <div class="rec-icon green">🛡️</div>
-                  <div class="rec-section-title">Prevention</div>
+                  <div class="rec-section-title" data-i18n="prevention">Prevention</div>
                 </div>
                 <ul class="rec-list" id="preventionList"></ul>
               </div>
@@ -390,7 +396,7 @@
               <div class="rec-section fertilizer-section">
                 <div class="rec-section-header">
                   <div class="rec-icon blue">🌱</div>
-                  <div class="rec-section-title">Fertilizer Advice</div>
+                  <div class="rec-section-title" data-i18n="fertilizer_advice">Fertilizer Advice</div>
                 </div>
                 <p class="fert-text" id="fertText">—</p>
               </div>
@@ -403,13 +409,13 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <path d="M3 12a9 9 0 109-9M3 12V6M3 12H9"/>
               </svg>
-              Analyze Another
+              <span data-i18n="analyze_another">Analyze Another</span>
             </button>
             <button class="btn btn-primary" id="downloadBtn">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
               </svg>
-              Download Report
+              <span data-i18n="download_report">Download Report</span>
             </button>
           </div>
         </div>
@@ -422,8 +428,8 @@
 <section class="how-section" id="how-it-works">
   <div class="container">
     <div class="section-header">
-      <div class="section-badge">Technology</div>
-      <h2 class="section-title">How It Works</h2>
+      <div class="section-badge" data-i18n="how_badge">Technology</div>
+      <h2 class="section-title" data-i18n="how_title">How It Works</h2>
       <p class="section-sub">Our end-to-end AI pipeline analyzes your crop images in real-time</p>
     </div>
     <div class="steps-grid">
@@ -462,8 +468,8 @@
 <section class="diseases-section" id="diseases">
   <div class="container">
     <div class="section-header">
-      <div class="section-badge">Coverage</div>
-      <h2 class="section-title">Detectable Diseases</h2>
+      <div class="section-badge" data-i18n="diseases_badge">Coverage</div>
+      <h2 class="section-title" data-i18n="diseases_title">Detectable Diseases</h2>
       <p class="section-sub">15 plant health conditions across 3 major crop types</p>
     </div>
     <div class="disease-tabs">
