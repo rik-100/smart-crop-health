@@ -350,6 +350,20 @@
                 <img id="gradcamImg" src="" alt="Grad-CAM" />
               </div>
             </div>
+            <div class="result-card glass-card img-card" id="yoloCard" style="display:none;">
+              <div class="card-header">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+                <span>YOLOv8 Detection</span>
+                <span class="badge-new" id="yoloCountBadge">0 Objects</span>
+              </div>
+              <div class="img-wrap">
+                <img id="yoloImg" src="" alt="YOLO" />
+              </div>
+              <div id="yoloDetections" style="margin-top:12px; font-size:0.8rem; color:var(--text-3);">
+              </div>
+            </div>
           </div>
 
           <!-- Recommendations -->

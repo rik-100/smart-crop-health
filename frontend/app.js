@@ -238,6 +238,27 @@ function displayResults(data) {
   document.getElementById("originalImg").src = `data:image/jpeg;base64,${images.original}`;
   document.getElementById("gradcamImg").src  = `data:image/jpeg;base64,${images.gradcam}`;
 
+  // YOLOv8 Detections
+  const yoloCard = document.getElementById("yoloCard");
+  if (images.yolo) {
+    yoloCard.style.display = "block";
+    document.getElementById("yoloImg").src  = `data:image/jpeg;base64,${images.yolo}`;
+    document.getElementById("yoloCountBadge").textContent = `${data.detections.length} Objects`;
+    
+    if (data.detections && data.detections.length > 0) {
+      document.getElementById("yoloDetections").innerHTML = data.detections.map(
+        d => `<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding:4px 0;">
+                <span style="color:var(--text-2);font-weight:600;text-transform:capitalize;">${d.class}</span>
+                <span style="color:var(--green-400);">${d.confidence.toFixed(1)}%</span>
+              </div>`
+      ).join("");
+    } else {
+      document.getElementById("yoloDetections").innerHTML = `<div style="text-align:center;padding:8px 0;">No objects detected.</div>`;
+    }
+  } else {
+    yoloCard.style.display = "none";
+  }
+
   
   const urgencyBadge = document.getElementById("urgencyBadge");
   urgencyBadge.textContent = recommendation.urgency.toUpperCase();
@@ -272,6 +293,7 @@ resetBtn.addEventListener("click", () => {
   uploadZone.style.display = "block";
   resultsContent.style.display = "none";
   emptyState.style.display = "flex";
+  document.getElementById("yoloCard").style.display = "none";
   // Reset loading step states
   ["ls1","ls2","ls3","ls4"].forEach(id => {
     const el = document.getElementById(id);

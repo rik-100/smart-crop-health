@@ -8,7 +8,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from tensorflow.keras.models import load_model, Model
 from werkzeug.utils import secure_filename
-
+from ultralytics import YOLO
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import sys
@@ -44,6 +44,10 @@ grad_model = Model(
     inputs=model.input,
     outputs=[model.get_layer(LAST_CONV_LAYER).output, model.output]
 )
+
+print("Loading YOLOv8 pest model...")
+pest_model = YOLO("yolov8n.pt")
+print("YOLOv8 loaded.")
 
 RECOMMENDATIONS = {
     "Pepper__bell___Bacterial_spot": {
@@ -464,6 +468,19 @@ def predict():
     try:
         img_rgb, img_array = preprocess_image(filepath)
 
+        # ── YOLO Detection ───────────────────────────
+        yolo_results = pest_model(filepath)
+        pest_annotated_bgr = yolo_results[0].plot()
+        pest_annotated_rgb = cv2.cvtColor(pest_annotated_bgr, cv2.COLOR_BGR2RGB)
+        pest_b64 = image_to_base64(pest_annotated_rgb)
+
+        detections = []
+        for c, conf in zip(yolo_results[0].boxes.cls, yolo_results[0].boxes.conf):
+            detections.append({
+                "class": pest_model.names[int(c)],
+                "confidence": float(conf * 100)
+            })
+
         # ── Predict ──────────────────────────────
         predictions = model.predict(img_array, verbose=0)
         pred_class_index = int(np.argmax(predictions[0]))
@@ -526,8 +543,10 @@ def predict():
             },
             "images": {
                 "original": original_b64,
-                "gradcam": overlay_b64
+                "gradcam": overlay_b64,
+                "yolo": pest_b64
             },
+            "detections": detections,
             "recommendation": rec
         }
 
