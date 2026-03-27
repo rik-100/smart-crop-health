@@ -697,7 +697,7 @@ body {
 .tp-item:first-child .tp-bar-fill { background: var(--green-400); box-shadow: 0 0 8px rgba(74,222,128,0.4); }
 
 /* Images Row */
-.images-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.images-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px; }
 .img-card {}
 .img-wrap {
   border-radius: var(--radius-sm);
