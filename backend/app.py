@@ -23,7 +23,8 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 
-MODEL_PATH = os.path.join(BASE_DIR, "ml", "models", "best_model.h5")
+MODEL_PATH_1 = os.path.join(BASE_DIR, "ml", "models", "best_model.h5")
+MODEL_PATH_2 = os.path.join(BASE_DIR, "ml", "models", "plant_disease_model.h5")
 DATASET_PATH = os.path.join(BASE_DIR, "data", "dataset", "train")
 IMG_SIZE = 224
 LAST_CONV_LAYER = "Conv_1"
@@ -35,10 +36,16 @@ try:
 except Exception as e:
     print("Failed to download model:", e)
 
-print("Loading model...")
-model = load_model(MODEL_PATH)
+print("Loading ensemble models...")
+model = load_model(MODEL_PATH_1)
+try:
+    model_2 = load_model(MODEL_PATH_2)
+except Exception as e:
+    print("Secondary model not found. Proceeding with single model.", e)
+    model_2 = model
+
 class_names = sorted(os.listdir(DATASET_PATH))
-print(f"Model loaded. Classes ({len(class_names)}): {class_names}")
+print(f"Ensemble Models loaded. Classes ({len(class_names)}): {class_names}")
 
 grad_model = Model(
     inputs=model.input,
@@ -481,8 +488,10 @@ def predict():
                 "confidence": float(conf * 100)
             })
 
-        # ── Predict ──────────────────────────────
-        predictions = model.predict(img_array, verbose=0)
+        # ── Predict (Ensemble) ──────────────────────────────
+        preds_1 = model.predict(img_array, verbose=0)
+        preds_2 = model_2.predict(img_array, verbose=0)
+        predictions = (preds_1 + preds_2) / 2.0
         pred_class_index = int(np.argmax(predictions[0]))
         confidence = float(predictions[0][pred_class_index] * 100)
 
@@ -563,7 +572,7 @@ def predict():
 def health_check():
     return jsonify({
         "status": "online",
-        "model": "MobileNetV2 (best_model.h5)",
+        "model": "Ensemble Soft-Voting (MobileNetV2)",
         "classes": len(class_names),
         "version": "1.0.0"
     })
