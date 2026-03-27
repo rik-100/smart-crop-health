@@ -4,6 +4,9 @@ __pycache__/
 
 # Virtual Environment
 venv/
+venv310/
+venv311/
+.venv/
 
 # ML Models (large files)
 *.h5
