@@ -524,7 +524,7 @@ downloadBtn.addEventListener("click", () => {
     </div>
 
     <div class="footer">
-      <strong>CropSense AI</strong> &mdash; MobileNetV2 Model &mdash; Smart Crop Health Detection System
+      <strong>CropSense AI</strong> &mdash; Ensemble Models &mdash; Smart Crop Health Detection System
     </div>
   </div>
 </div>
