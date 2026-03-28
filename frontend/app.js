@@ -1,6 +1,155 @@
 
 
-const API_BASE = "http://127.0.0.1:5000/api";
+const API_BASE = "/api";
+
+const I18N = {
+  en: {
+    nav_analyzer: "Analyzer",
+    nav_how: "How It Works",
+    nav_diseases: "Diseases",
+    nav_about: "About",
+    nav_status_initial: "Checking model...",
+    hero_title_main: "Detect Crop Disease",
+    hero_title_accent: "Instantly with AI",
+    hero_subtitle: "Upload a leaf photo and get real-time disease detection, severity analysis, Grad-CAM visualization and expert treatment recommendations in seconds.",
+    hero_cta_primary: "Analyze a Leaf",
+    hero_cta_secondary: "How It Works",
+    analyzer_badge: "Disease Analyzer",
+    analyzer_title: "Upload & Analyze",
+    analyzer_sub: "Drop any leaf image from tomatoes, peppers or potatoes for instant AI diagnosis",
+    upload_title: "Drop your leaf image here",
+    upload_sub: "or click to browse files",
+    choose_file: "Choose File",
+    selected_image: "Selected Image",
+    analyze_now: "Analyze Now",
+    supported_crops: "Supported Crops",
+    crop_pepper: "Pepper",
+    crop_potato: "Potato",
+    crop_tomato: "Tomato",
+    loading_title: "Analyzing Leaf...",
+    loading_step_1: "Processing image",
+    loading_step_2: "Running AI model",
+    loading_step_3: "Generating Grad-CAM",
+    loading_step_4: "Building recommendations",
+    empty_title: "Awaiting Analysis",
+    empty_sub: "Upload a leaf image to see the AI diagnosis, severity assessment, and treatment recommendations here.",
+    confidence_label: "Confidence",
+    severity_analysis: "Severity Analysis",
+    top_predictions: "Top Predictions",
+    original_leaf: "Original Leaf",
+    gradcam_heatmap: "Grad-CAM Heatmap",
+    ai_focus_areas: "AI Focus Areas",
+    treatment_recommendations: "Treatment Recommendations",
+    immediate_actions: "Immediate Actions",
+    treatments: "Treatments",
+    prevention: "Prevention",
+    fertilizer_advice: "Fertilizer Advice",
+    analyze_another: "Analyze Another",
+    download_report: "Download Report",
+    how_badge: "Technology",
+    how_title: "How It Works",
+    diseases_badge: "Coverage",
+    diseases_title: "Detectable Diseases",
+    toast_invalid_file: "Please upload a JPG, PNG, or WEBP image.",
+    toast_file_size: "File size must be under 20MB.",
+    toast_select_file: "Please select an image first.",
+    error_prefix: "Error: {message}",
+    badge_healthy: "Healthy Plant",
+    badge_diseased: "Disease Detected",
+    severity_none: "None",
+    no_infected_area: "No infected area detected",
+    infected_area: "{percentage}% infected area",
+    sevinfo_mild: "Early stage - act quickly",
+    sevinfo_moderate: "Significant spread - treat now",
+    sevinfo_severe: "Critical - immediate action!",
+    sevinfo_healthy: "Plant is in great shape!",
+    severity_mild: "Mild",
+    severity_moderate: "Moderate",
+    severity_severe: "Severe",
+    status_healthy_short: "✓ Healthy",
+    status_disease_short: "⚠ Disease",
+    model_online: "Model Online ({classes} classes)",
+    model_offline: "Model Offline",
+    urgency_none: "NONE",
+    urgency_medium: "MEDIUM",
+    urgency_high: "HIGH",
+    urgency_critical: "CRITICAL"
+  },
+  bn: {
+    nav_analyzer: "বিশ্লেষণ",
+    nav_how: "কীভাবে কাজ করে",
+    nav_diseases: "রোগসমূহ",
+    nav_about: "সম্পর্কে",
+    nav_status_initial: "মডেল পরীক্ষা করা হচ্ছে...",
+    hero_title_main: "ফসলের রোগ শনাক্ত করুন",
+    hero_title_accent: "তাৎক্ষণিক AI সহায়তায়",
+    hero_subtitle: "পাতার ছবি আপলোড করুন এবং কয়েক সেকেন্ডে রোগ শনাক্তকরণ, তীব্রতা বিশ্লেষণ, Grad-CAM ভিজুয়ালাইজেশন ও বিশেষজ্ঞ পরামর্শ পান।",
+    hero_cta_primary: "পাতা বিশ্লেষণ করুন",
+    hero_cta_secondary: "কীভাবে কাজ করে",
+    analyzer_badge: "রোগ বিশ্লেষক",
+    analyzer_title: "আপলোড ও বিশ্লেষণ",
+    analyzer_sub: "তাৎক্ষণিক AI নির্ণয়ের জন্য টমেটো, মরিচ বা আলুর পাতার ছবি দিন",
+    upload_title: "এখানে পাতার ছবি দিন",
+    upload_sub: "অথবা ফাইল বাছাই করতে ক্লিক করুন",
+    choose_file: "ফাইল বাছাই করুন",
+    selected_image: "নির্বাচিত ছবি",
+    analyze_now: "এখন বিশ্লেষণ করুন",
+    supported_crops: "সমর্থিত ফসল",
+    crop_pepper: "মরিচ",
+    crop_potato: "আলু",
+    crop_tomato: "টমেটো",
+    loading_title: "পাতা বিশ্লেষণ করা হচ্ছে...",
+    loading_step_1: "ছবি প্রক্রিয়াকরণ",
+    loading_step_2: "AI মডেল চালানো হচ্ছে",
+    loading_step_3: "Grad-CAM তৈরি হচ্ছে",
+    loading_step_4: "পরামর্শ তৈরি হচ্ছে",
+    empty_title: "বিশ্লেষণের অপেক্ষায়",
+    empty_sub: "AI নির্ণয়, তীব্রতা মূল্যায়ন এবং চিকিৎসা পরামর্শ দেখতে একটি পাতার ছবি আপলোড করুন।",
+    confidence_label: "আত্মবিশ্বাস",
+    severity_analysis: "তীব্রতা বিশ্লেষণ",
+    top_predictions: "শীর্ষ পূর্বাভাস",
+    original_leaf: "মূল পাতা",
+    gradcam_heatmap: "Grad-CAM হিটম্যাপ",
+    ai_focus_areas: "AI ফোকাস এলাকা",
+    treatment_recommendations: "চিকিৎসা পরামর্শ",
+    immediate_actions: "তাৎক্ষণিক করণীয়",
+    treatments: "চিকিৎসা",
+    prevention: "প্রতিরোধ",
+    fertilizer_advice: "সারের পরামর্শ",
+    analyze_another: "আরেকটি বিশ্লেষণ করুন",
+    download_report: "রিপোর্ট ডাউনলোড করুন",
+    how_badge: "প্রযুক্তি",
+    how_title: "কীভাবে কাজ করে",
+    diseases_badge: "কভারেজ",
+    diseases_title: "শনাক্তযোগ্য রোগসমূহ",
+    toast_invalid_file: "দয়া করে JPG, PNG অথবা WEBP ছবি আপলোড করুন।",
+    toast_file_size: "ফাইলের আকার ২০MB-এর কম হতে হবে।",
+    toast_select_file: "প্রথমে একটি ছবি বাছাই করুন।",
+    error_prefix: "ত্রুটি: {message}",
+    badge_healthy: "সুস্থ গাছ",
+    badge_diseased: "রোগ শনাক্ত হয়েছে",
+    severity_none: "নেই",
+    no_infected_area: "সংক্রমিত এলাকা পাওয়া যায়নি",
+    infected_area: "{percentage}% সংক্রমিত এলাকা",
+    sevinfo_mild: "প্রাথমিক স্তর - দ্রুত ব্যবস্থা নিন",
+    sevinfo_moderate: "উল্লেখযোগ্য বিস্তার - এখনই চিকিৎসা করুন",
+    sevinfo_severe: "জরুরি - অবিলম্বে ব্যবস্থা নিন!",
+    sevinfo_healthy: "গাছটি ভালো অবস্থায় আছে!",
+    severity_mild: "মৃদু",
+    severity_moderate: "মাঝারি",
+    severity_severe: "গুরুতর",
+    status_healthy_short: "✓ সুস্থ",
+    status_disease_short: "⚠ রোগ",
+    model_online: "মডেল অনলাইন ({classes}টি ক্লাস)",
+    model_offline: "মডেল অফলাইন",
+    urgency_none: "নেই",
+    urgency_medium: "মাঝারি",
+    urgency_high: "উচ্চ",
+    urgency_critical: "জরুরি"
+  }
+};
+
+let currentLang = localStorage.getItem("cropsense_lang") === "bn" ? "bn" : "en";
 
 
 let currentFile = null;
@@ -48,6 +197,43 @@ const diseaseGrid      = document.getElementById("diseaseGrid");
 const navbar           = document.getElementById("navbar");
 const toast            = document.getElementById("toast");
 const toastMsg         = document.getElementById("toastMsg");
+const langButtons      = document.querySelectorAll(".lang-btn");
+
+function t(key, params = {}) {
+  const template = I18N[currentLang]?.[key] ?? I18N.en[key] ?? key;
+  return template.replace(/\{(\w+)\}/g, (_, name) => params[name] ?? "");
+}
+
+function translateSeverity(level) {
+  const keys = {
+    Mild: "severity_mild",
+    Moderate: "severity_moderate",
+    Severe: "severity_severe"
+  };
+  return t(keys[level] || level);
+}
+
+function applyTranslations() {
+  document.documentElement.lang = currentLang === "bn" ? "bn" : "en";
+  document.body.classList.toggle("lang-bn", currentLang === "bn");
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  langButtons.forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.lang === currentLang);
+  });
+  renderDiseaseGrid(document.querySelector(".tab-btn.active")?.dataset.crop || "all");
+  if (lastResult) displayResults(lastResult);
+  checkApiStatus();
+}
+
+langButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    currentLang = btn.dataset.lang === "bn" ? "bn" : "en";
+    localStorage.setItem("cropsense_lang", currentLang);
+    applyTranslations();
+  });
+});
 
 
 window.addEventListener("scroll", () => {
@@ -74,11 +260,11 @@ fileInput.addEventListener("change", () => { if (fileInput.files[0]) handleFile(
 function handleFile(file) {
   const allowed = ["image/jpeg","image/png","image/webp"];
   if (!allowed.includes(file.type)) {
-    showToast("Please upload a JPG, PNG, or WEBP image.");
+    showToast(t("toast_invalid_file"));
     return;
   }
   if (file.size > 20 * 1024 * 1024) {
-    showToast("File size must be under 20MB.");
+    showToast(t("toast_file_size"));
     return;
   }
   currentFile = file;
@@ -103,7 +289,7 @@ clearBtn.addEventListener("click", () => {
 analyzeBtn.addEventListener("click", runAnalysis);
 
 async function runAnalysis() {
-  if (!currentFile) { showToast("Please select an image first."); return; }
+  if (!currentFile) { showToast(t("toast_select_file")); return; }
 
   
   emptyState.style.display = "none";
@@ -154,7 +340,7 @@ async function runAnalysis() {
     clearInterval(stepTimer);
     loadingState.style.display = "none";
     emptyState.style.display = "flex";
-    showToast(`Error: ${err.message}`);
+    showToast(t("error_prefix", { message: err.message }));
   }
 }
 
@@ -172,9 +358,8 @@ function displayResults(data) {
   const cropType = prediction.class.toLowerCase().includes("tomato") ? "🍅"
     : prediction.class.toLowerCase().includes("potato") ? "🥔"
     : "🌶️";
-
   diseaseIcon.textContent = isHealthy ? "✅" : "🔬";
-  document.getElementById("diseaseBadge").textContent = isHealthy ? "Healthy Plant" : "Disease Detected";
+  document.getElementById("diseaseBadge").textContent = isHealthy ? t("badge_healthy") : t("badge_diseased");
   document.getElementById("diseaseBadge").className = `disease-badge ${isHealthy ? "healthy" : "diseased"}`;
   document.getElementById("diseaseName").textContent = prediction.label;
   document.getElementById("diseaseDesc").textContent = recommendation.description;
@@ -186,20 +371,20 @@ function displayResults(data) {
 
   
   const sevLevel = document.getElementById("sevLevel");
-  sevLevel.textContent = isHealthy ? "None" : severity.level;
+  sevLevel.textContent = isHealthy ? t("severity_none") : translateSeverity(severity.level);
   sevLevel.style.color = isHealthy ? "var(--green-400)" : severity.color;
   document.getElementById("sevPercent").textContent = isHealthy
-    ? "No infected area detected"
-    : `${severity.percentage.toFixed(1)}% infected area`;
+    ? t("no_infected_area")
+    : t("infected_area", { percentage: severity.percentage.toFixed(1) });
 
   const sevInfoEl = document.getElementById("sevInfo");
   const sevInfoMap = {
-    "Mild":     { text: "Early stage — act quickly", cls: "sev-mild"    },
-    "Moderate": { text: "Significant spread — treat now", cls: "sev-mod" },
-    "Severe":   { text: "Critical — immediate action!", cls: "sev-sev"   }
+    "Mild":     { text: t("sevinfo_mild"), cls: "sev-mild"    },
+    "Moderate": { text: t("sevinfo_moderate"), cls: "sev-mod" },
+    "Severe":   { text: t("sevinfo_severe"), cls: "sev-sev"   }
   };
   if (isHealthy) {
-    sevInfoEl.textContent = "Plant is in great shape!";
+    sevInfoEl.textContent = t("sevinfo_healthy");
     sevInfoEl.style.background = "rgba(34,197,94,0.1)";
     sevInfoEl.style.color = "var(--green-400)";
   } else {
@@ -266,7 +451,8 @@ function displayResults(data) {
 
   
   const urgencyBadge = document.getElementById("urgencyBadge");
-  urgencyBadge.textContent = recommendation.urgency.toUpperCase();
+  const urgencyKey = `urgency_${recommendation.urgency}`;
+  urgencyBadge.textContent = t(urgencyKey);
   urgencyBadge.className = `urgency-badge urgency-${recommendation.urgency}`;
 
   renderList("immediateList", recommendation.immediate_actions);
@@ -553,9 +739,9 @@ function renderDiseaseGrid(filter = "all") {
 
   diseaseGrid.innerHTML = items.map((d, i) => `
     <div class="disease-item glass-card" style="animation-delay:${i * 0.04}s">
-      <div class="di-crop">${CROP_ICONS[d.crop]} ${d.crop}</div>
+      <div class="di-crop">${CROP_ICONS[d.crop]} ${t(`crop_${d.crop}`)}</div>
       <div class="di-name">${d.label}</div>
-      <span class="di-status ${d.healthy ? 'healthy':'disease'}">${d.healthy ? '✓ Healthy' : '⚠ Disease'}</span>
+      <span class="di-status ${d.healthy ? 'healthy':'disease'}">${d.healthy ? t("status_healthy_short") : t("status_disease_short")}</span>
     </div>
   `).join("");
 }
@@ -575,10 +761,10 @@ async function checkApiStatus() {
     const r = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(5000) });
     if (!r.ok) throw new Error();
     const data = await r.json();
-    navStatus.innerHTML = `<div class="status-dot"></div><span>Model Online (${data.classes} classes)</span>`;
+    navStatus.innerHTML = `<div class="status-dot"></div><span>${t("model_online", { classes: data.classes })}</span>`;
     navStatus.style.color = "var(--green-400)";
   } catch {
-    navStatus.innerHTML = `<div class="status-dot" style="background:var(--red-400);animation:none"></div><span style="color:var(--red-400)">Model Offline</span>`;
+    navStatus.innerHTML = `<div class="status-dot" style="background:var(--red-400);animation:none"></div><span style="color:var(--red-400)">${t("model_offline")}</span>`;
   }
 }
 
@@ -600,8 +786,7 @@ document.querySelectorAll("a[href^='#']").forEach(a => {
 });
 
 // ─── INIT ────────────────────────────────────
-renderDiseaseGrid();
-checkApiStatus();
+applyTranslations();
 setInterval(checkApiStatus, 30000); // Re-check every 30s
 
 // ─── CHATBOT ─────────────────────────────────
