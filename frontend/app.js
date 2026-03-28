@@ -5,6 +5,7 @@ const API_BASE = "http://127.0.0.1:5000/api";
 
 let currentFile = null;
 let lastResult  = null;
+let activeDiseaseContext = "No disease analyzed yet.";
 
 
 const DISEASE_CATALOG = [
@@ -164,6 +165,10 @@ function displayResults(data) {
 
   const isHealthy = prediction.is_healthy;
   const diseaseIcon = document.getElementById("diseaseIconWrap");
+  
+  // Update Chat Context
+  activeDiseaseContext = prediction.label + " (" + (isHealthy ? "Healthy" : severity.level + " Severity, " + severity.percentage.toFixed(1) + "% infected") + ")";
+
   const cropType = prediction.class.toLowerCase().includes("tomato") ? "🍅"
     : prediction.class.toLowerCase().includes("potato") ? "🥔"
     : "🌶️";
@@ -598,3 +603,53 @@ document.querySelectorAll("a[href^='#']").forEach(a => {
 renderDiseaseGrid();
 checkApiStatus();
 setInterval(checkApiStatus, 30000); // Re-check every 30s
+
+// ─── CHATBOT ─────────────────────────────────
+const chatToggle= document.getElementById("chatToggle");
+const chatWindow= document.getElementById("chatWindow");
+const chatClose = document.getElementById("chatCloseBtn");
+const chatBody  = document.getElementById("chatBody");
+const chatInput = document.getElementById("chatInput");
+const chatSend  = document.getElementById("chatSendBtn");
+
+chatToggle.addEventListener("click", () => {
+  chatWindow.style.display = chatWindow.style.display === "none" ? "flex" : "none";
+});
+chatClose.addEventListener("click", () => { chatWindow.style.display = "none"; });
+
+chatSend.addEventListener("click", sendChatMsg);
+chatInput.addEventListener("keypress", (e) => { if (e.key === "Enter") sendChatMsg(); });
+
+async function sendChatMsg() {
+  const msg = chatInput.value.trim();
+  if (!msg) return;
+  
+  // Append User Msg
+  chatBody.innerHTML += `<div class="chat-msg user"><div class="msg-bubble">${msg}</div></div>`;
+  chatInput.value = "";
+  chatBody.scrollTop = chatBody.scrollHeight;
+
+  // Append Loading Bot Msg
+  const tempId = "msg-" + Date.now();
+  chatBody.innerHTML += `<div class="chat-msg bot" id="${tempId}"><div class="msg-bubble">Typing...</div></div>`;
+  chatBody.scrollTop = chatBody.scrollHeight;
+
+  try {
+    const r = await fetch(`${API_BASE}/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: msg, context: activeDiseaseContext })
+    });
+    const data = await r.json();
+    
+    // Convert markdown bold to html (basic support)
+    const formatted = (data.response || data.error || "Error generating response")
+      .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
+      .replace(/\n/g, "<br>");
+
+    document.getElementById(tempId).innerHTML = `<div class="msg-bubble">${formatted}</div>`;
+  } catch (err) {
+    document.getElementById(tempId).innerHTML = `<div class="msg-bubble" style="color:var(--red-400)">Connection error.</div>`;
+  }
+  chatBody.scrollTop = chatBody.scrollHeight;
+}

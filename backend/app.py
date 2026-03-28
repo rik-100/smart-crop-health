@@ -4,6 +4,7 @@ import numpy as np
 import tensorflow as tf
 import base64
 import json
+import google.generativeai as genai
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from tensorflow.keras.models import load_model, Model
@@ -46,6 +47,10 @@ except Exception as e:
 
 class_names = sorted(os.listdir(DATASET_PATH))
 print(f"Ensemble Models loaded. Classes ({len(class_names)}): {class_names}")
+
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyBCpGep6jX8VMAbD-h0R7ctwOoMuoiLliQ")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
 
 grad_model = Model(
     inputs=model.input,
@@ -574,8 +579,59 @@ def health_check():
         "status": "online",
         "model": "Ensemble Soft-Voting (MobileNetV2)",
         "classes": len(class_names),
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "llm_enabled": bool(GEMINI_API_KEY)
     })
+
+@app.route("/api/chat", methods=["POST"])
+def chat():
+    data = request.json
+    if not data or "message" not in data:
+        return jsonify({"error": "No message provided"}), 400
+
+    user_msg = data["message"]
+    context_data = data.get("context", "None")
+
+    if not GEMINI_API_KEY:
+        return jsonify({
+            "response": "I am operating in mock mode because the `GEMINI_API_KEY` is not set on the backend. Please restart the Flask server with the key configured to use my generative AI capabilities."
+        })
+
+    try:
+        chat_model = genai.GenerativeModel("gemini-flash-lite-latest")
+        
+        disease_context = context_data
+        message = user_msg
+        system_prompt = f"""
+You are a professional agronomist AI assistant.
+
+The user has already scanned a plant leaf and the system detected:
+Disease: {disease_context}
+
+Your job:
+1. Answer the user's question clearly
+2. Give practical treatment steps
+3. Warn about spread risk (if applicable)
+4. Suggest prevention methods
+5. Keep language simple (like talking to a farmer)
+
+Tone:
+- Helpful
+- Confident
+- Not overly technical
+
+User: {message}
+"""
+        response = chat_model.generate_content(system_prompt)
+
+        return jsonify({"response": response.text})
+    except Exception as e:
+        error_msg = str(e)
+        if "429" in error_msg or "quota" in error_msg.lower() or "rate" in error_msg.lower():
+            return jsonify({
+                "response": "I'm currently experiencing high demand. Please wait a moment and try again. (API rate limit reached)"
+            })
+        return jsonify({"error": error_msg}), 500
 
 # MAIN
 
@@ -586,3 +642,5 @@ if __name__ == "__main__":
     print("  http://127.0.0.1:5000")
     print("=" * 60)
     app.run(debug=True, host="0.0.0.0", port=5000)
+
+
