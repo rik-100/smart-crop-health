@@ -34,6 +34,7 @@
       <a href="#analyzer" class="nav-link" data-i18n="nav_analyzer">Analyzer</a>
       <a href="#how-it-works" class="nav-link" data-i18n="nav_how">How It Works</a>
       <a href="#diseases" class="nav-link" data-i18n="nav_diseases">Diseases</a>
+      <a href="#dashboard" class="nav-link" data-i18n="nav_dashboard">Dashboard</a>
       <a href="#about" class="nav-link" data-i18n="nav_about">About</a>
     </div>
     <div class="nav-actions">
@@ -498,6 +499,81 @@
   </div>
 </section>
 
+<!-- ════════════════════ DASHBOARD ════════════════════ -->
+<section class="dashboard-section" id="dashboard">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-badge" data-i18n="dash_badge">Analytics</div>
+      <h2 class="section-title" data-i18n="dash_title">Farm Dashboard</h2>
+      <p class="section-sub" data-i18n="dash_sub">Track your scan history and visualize crop health trends over time</p>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="dash-stats-grid" id="dashStatsGrid">
+      <div class="dash-stat-card glass-card">
+        <div class="dsc-icon">📊</div>
+        <div class="dsc-value" id="dashTotalScans">0</div>
+        <div class="dsc-label" data-i18n="dash_total_scans">Total Scans</div>
+      </div>
+      <div class="dash-stat-card glass-card">
+        <div class="dsc-icon">✅</div>
+        <div class="dsc-value" id="dashHealthyPct">0%</div>
+        <div class="dsc-label" data-i18n="dash_healthy_rate">Healthy Rate</div>
+      </div>
+      <div class="dash-stat-card glass-card">
+        <div class="dsc-icon">🦠</div>
+        <div class="dsc-value" id="dashTopDisease">—</div>
+        <div class="dsc-label" data-i18n="dash_top_disease">Top Disease</div>
+      </div>
+      <div class="dash-stat-card glass-card">
+        <div class="dsc-icon">🎯</div>
+        <div class="dsc-value" id="dashAvgConf">0%</div>
+        <div class="dsc-label" data-i18n="dash_avg_confidence">Avg Confidence</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="dash-charts-grid">
+      <div class="dash-chart-card glass-card">
+        <div class="card-header"><span data-i18n="dash_health_ratio">Healthy vs Diseased</span></div>
+        <div class="chart-wrap"><canvas id="chartHealthRatio"></canvas></div>
+      </div>
+      <div class="dash-chart-card glass-card">
+        <div class="card-header"><span data-i18n="dash_disease_freq">Disease Frequency</span></div>
+        <div class="chart-wrap"><canvas id="chartDiseaseFreq"></canvas></div>
+      </div>
+      <div class="dash-chart-card glass-card">
+        <div class="card-header"><span data-i18n="dash_severity_dist">Severity Distribution</span></div>
+        <div class="chart-wrap"><canvas id="chartSeverity"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Scan History Table -->
+    <div class="dash-history glass-card">
+      <div class="card-header dash-history-header">
+        <span data-i18n="dash_scan_history">Scan History</span>
+        <button class="btn btn-outline btn-sm" id="clearHistoryBtn" data-i18n="dash_clear_history">Clear History</button>
+      </div>
+      <div class="dash-table-wrap">
+        <table class="dash-table" id="dashHistoryTable">
+          <thead>
+            <tr>
+              <th data-i18n="dash_col_date">Date</th>
+              <th data-i18n="dash_col_crop">Crop</th>
+              <th data-i18n="dash_col_disease">Disease</th>
+              <th data-i18n="dash_col_confidence">Confidence</th>
+              <th data-i18n="dash_col_severity">Severity</th>
+              <th data-i18n="dash_col_status">Status</th>
+            </tr>
+          </thead>
+          <tbody id="dashHistoryBody"></tbody>
+        </table>
+        <div class="dash-empty" id="dashEmpty" data-i18n="dash_no_scans">No scans yet. Analyze a leaf to get started!</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ════════════════════ ABOUT ════════════════════ -->
 <section class="about-section" id="about">
   <div class="container">
@@ -610,6 +686,7 @@
   <div class="toast-msg" id="toastMsg"></div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

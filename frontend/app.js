@@ -73,7 +73,29 @@ const I18N = {
     urgency_none: "NONE",
     urgency_medium: "MEDIUM",
     urgency_high: "HIGH",
-    urgency_critical: "CRITICAL"
+    urgency_critical: "CRITICAL",
+    nav_dashboard: "Dashboard",
+    dash_badge: "Analytics",
+    dash_title: "Farm Dashboard",
+    dash_sub: "Track your scan history and visualize crop health trends over time",
+    dash_total_scans: "Total Scans",
+    dash_healthy_rate: "Healthy Rate",
+    dash_top_disease: "Top Disease",
+    dash_avg_confidence: "Avg Confidence",
+    dash_health_ratio: "Healthy vs Diseased",
+    dash_disease_freq: "Disease Frequency",
+    dash_severity_dist: "Severity Distribution",
+    dash_scan_history: "Scan History",
+    dash_clear_history: "Clear History",
+    dash_col_date: "Date",
+    dash_col_crop: "Crop",
+    dash_col_disease: "Disease",
+    dash_col_confidence: "Confidence",
+    dash_col_severity: "Severity",
+    dash_col_status: "Status",
+    dash_no_scans: "No scans yet. Analyze a leaf to get started!",
+    dash_healthy: "Healthy",
+    dash_diseased: "Diseased"
   },
   bn: {
     nav_analyzer: "বিশ্লেষণ",
@@ -145,7 +167,29 @@ const I18N = {
     urgency_none: "নেই",
     urgency_medium: "মাঝারি",
     urgency_high: "উচ্চ",
-    urgency_critical: "জরুরি"
+    urgency_critical: "জরুরি",
+    nav_dashboard: "ড্যাশবোর্ড",
+    dash_badge: "বিশ্লেষণ",
+    dash_title: "ফার্ম ড্যাশবোর্ড",
+    dash_sub: "আপনার স্ক্যানের ইতিহাস ট্র্যাক করুন এবং ফসলের স্বাস্থ্য প্রবণতা দেখুন",
+    dash_total_scans: "মোট স্ক্যান",
+    dash_healthy_rate: "সুস্থতার হার",
+    dash_top_disease: "শীর্ষ রোগ",
+    dash_avg_confidence: "গড় আত্মবিশ্বাস",
+    dash_health_ratio: "সুস্থ বনাম রোগাক্রান্ত",
+    dash_disease_freq: "রোগের পুনরাবৃত্তি",
+    dash_severity_dist: "তীব্রতা বিতরণ",
+    dash_scan_history: "স্ক্যানের ইতিহাস",
+    dash_clear_history: "ইতিহাস মুছুন",
+    dash_col_date: "তারিখ",
+    dash_col_crop: "ফসল",
+    dash_col_disease: "রোগ",
+    dash_col_confidence: "আত্মবিশ্বাস",
+    dash_col_severity: "তীব্রতা",
+    dash_col_status: "অবস্থা",
+    dash_no_scans: "এখনও কোনো স্ক্যান নেই। শুরু করতে একটি পাতা বিশ্লেষণ করুন!",
+    dash_healthy: "সুস্থ",
+    dash_diseased: "রোগাক্রান্ত"
   }
 };
 
@@ -358,6 +402,9 @@ function displayResults(data) {
   const cropType = prediction.class.toLowerCase().includes("tomato") ? "🍅"
     : prediction.class.toLowerCase().includes("potato") ? "🥔"
     : "🌶️";
+
+  // Auto-save to dashboard history
+  saveScanToHistory(data);
   diseaseIcon.textContent = isHealthy ? "✅" : "🔬";
   document.getElementById("diseaseBadge").textContent = isHealthy ? t("badge_healthy") : t("badge_diseased");
   document.getElementById("diseaseBadge").className = `disease-badge ${isHealthy ? "healthy" : "diseased"}`;
@@ -838,3 +885,209 @@ async function sendChatMsg() {
   }
   chatBody.scrollTop = chatBody.scrollHeight;
 }
+
+// ─── DASHBOARD ───────────────────────────────
+const SCAN_HISTORY_KEY = "cropsense_scan_history";
+let dashCharts = { health: null, disease: null, severity: null };
+
+function getScanHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(SCAN_HISTORY_KEY)) || [];
+  } catch { return []; }
+}
+
+function saveScanToHistory(data) {
+  const history = getScanHistory();
+  const pred = data.prediction;
+  const cropName = pred.class.toLowerCase().includes("tomato") ? "Tomato"
+    : pred.class.toLowerCase().includes("potato") ? "Potato" : "Pepper";
+
+  history.unshift({
+    date: new Date().toISOString(),
+    crop: cropName,
+    disease: pred.label,
+    confidence: pred.confidence,
+    severity: data.severity.level,
+    isHealthy: pred.is_healthy
+  });
+
+  // Keep max 100 entries
+  if (history.length > 100) history.length = 100;
+  localStorage.setItem(SCAN_HISTORY_KEY, JSON.stringify(history));
+  loadDashboard();
+}
+
+function loadDashboard() {
+  const history = getScanHistory();
+  const total = history.length;
+  const dashEmpty = document.getElementById("dashEmpty");
+  const dashTable = document.getElementById("dashHistoryTable");
+
+  // Summary stats
+  document.getElementById("dashTotalScans").textContent = total;
+
+  if (total === 0) {
+    document.getElementById("dashHealthyPct").textContent = "0%";
+    document.getElementById("dashTopDisease").textContent = "\u2014";
+    document.getElementById("dashAvgConf").textContent = "0%";
+    dashEmpty.style.display = "block";
+    dashTable.style.display = "none";
+    renderDashCharts([], 0, 0, {}, {});
+    return;
+  }
+
+  dashEmpty.style.display = "none";
+  dashTable.style.display = "table";
+
+  const healthyCount = history.filter(s => s.isHealthy).length;
+  const diseasedCount = total - healthyCount;
+  const healthyPct = ((healthyCount / total) * 100).toFixed(0);
+  const avgConf = (history.reduce((sum, s) => sum + s.confidence, 0) / total).toFixed(1);
+
+  // Disease frequency (exclude healthy)
+  const diseaseFreq = {};
+  history.filter(s => !s.isHealthy).forEach(s => {
+    diseaseFreq[s.disease] = (diseaseFreq[s.disease] || 0) + 1;
+  });
+  const topDisease = Object.entries(diseaseFreq).sort((a, b) => b[1] - a[1])[0];
+
+  // Severity distribution
+  const sevDist = { Mild: 0, Moderate: 0, Severe: 0 };
+  history.filter(s => !s.isHealthy).forEach(s => {
+    if (sevDist[s.severity] !== undefined) sevDist[s.severity]++;
+  });
+
+  document.getElementById("dashHealthyPct").textContent = healthyPct + "%";
+  document.getElementById("dashTopDisease").textContent = topDisease ? topDisease[0].replace(/.*- */, "").trim() : "\u2014";
+  document.getElementById("dashAvgConf").textContent = avgConf + "%";
+
+  // Render charts
+  renderDashCharts(history, healthyCount, diseasedCount, diseaseFreq, sevDist);
+
+  // Render history table
+  const tbody = document.getElementById("dashHistoryBody");
+  tbody.innerHTML = history.map(s => {
+    const d = new Date(s.date);
+    const dateStr = d.toLocaleDateString() + " " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const statusCls = s.isHealthy ? "healthy" : "diseased";
+    const statusText = s.isHealthy ? t("dash_healthy") : t("dash_diseased");
+    const sevCls = s.isHealthy ? "none" : s.severity.toLowerCase();
+    const sevText = s.isHealthy ? "\u2014" : s.severity;
+    const cropIcon = s.crop === "Tomato" ? "\ud83c\udf45" : s.crop === "Potato" ? "\ud83e\udd54" : "\ud83c\udf36\ufe0f";
+    return `<tr>
+      <td>${dateStr}</td>
+      <td>${cropIcon} ${s.crop}</td>
+      <td>${s.disease}</td>
+      <td>${s.confidence.toFixed(1)}%</td>
+      <td><span class="dash-severity-pill ${sevCls}">${sevText}</span></td>
+      <td><span class="dash-status-pill ${statusCls}">${statusText}</span></td>
+    </tr>`;
+  }).join("");
+}
+
+function renderDashCharts(history, healthyCount, diseasedCount, diseaseFreq, sevDist) {
+  const chartColors = {
+    green: "rgba(74,222,128,0.8)",
+    red: "rgba(248,113,113,0.8)",
+    greenBg: "rgba(74,222,128,0.15)",
+    redBg: "rgba(248,113,113,0.15)",
+    amber: "rgba(251,191,36,0.8)",
+    blue: "rgba(96,165,250,0.8)",
+    purple: "rgba(168,85,247,0.8)",
+    cyan: "rgba(34,211,238,0.8)",
+    pink: "rgba(244,114,182,0.8)",
+    orange: "rgba(251,146,60,0.8)",
+    lime: "rgba(163,230,53,0.8)",
+    sky: "rgba(56,189,248,0.8)"
+  };
+  const barColors = [chartColors.red, chartColors.amber, chartColors.blue, chartColors.purple, chartColors.cyan, chartColors.pink, chartColors.orange, chartColors.lime, chartColors.sky];
+  const defaultOpts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: "rgba(255,255,255,0.6)", font: { size: 11 } } } },
+    scales: {}
+  };
+
+  // Destroy old charts
+  Object.values(dashCharts).forEach(c => { if (c) c.destroy(); });
+
+  // Health Ratio Doughnut
+  dashCharts.health = new Chart(document.getElementById("chartHealthRatio"), {
+    type: "doughnut",
+    data: {
+      labels: [t("dash_healthy"), t("dash_diseased")],
+      datasets: [{
+        data: [healthyCount, diseasedCount],
+        backgroundColor: [chartColors.green, chartColors.red],
+        borderColor: ["rgba(74,222,128,0.3)", "rgba(248,113,113,0.3)"],
+        borderWidth: 2
+      }]
+    },
+    options: {
+      ...defaultOpts,
+      cutout: "65%",
+      plugins: {
+        ...defaultOpts.plugins,
+        legend: { position: "bottom", labels: { color: "rgba(255,255,255,0.6)", font: { size: 11 }, padding: 16 } }
+      }
+    }
+  });
+
+  // Disease Frequency Bar
+  const diseaseLabels = Object.keys(diseaseFreq).map(l => l.replace(/.*- */, "").trim());
+  const diseaseValues = Object.values(diseaseFreq);
+  dashCharts.disease = new Chart(document.getElementById("chartDiseaseFreq"), {
+    type: "bar",
+    data: {
+      labels: diseaseLabels.length ? diseaseLabels : ["No diseases"],
+      datasets: [{
+        label: "Count",
+        data: diseaseValues.length ? diseaseValues : [0],
+        backgroundColor: barColors.slice(0, diseaseLabels.length || 1),
+        borderRadius: 6,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      ...defaultOpts,
+      indexAxis: "y",
+      plugins: { ...defaultOpts.plugins, legend: { display: false } },
+      scales: {
+        x: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "rgba(255,255,255,0.5)", stepSize: 1 } },
+        y: { grid: { display: false }, ticks: { color: "rgba(255,255,255,0.6)", font: { size: 10 } } }
+      }
+    }
+  });
+
+  // Severity Distribution Bar
+  dashCharts.severity = new Chart(document.getElementById("chartSeverity"), {
+    type: "bar",
+    data: {
+      labels: ["Mild", "Moderate", "Severe"],
+      datasets: [{
+        label: "Count",
+        data: [sevDist.Mild || 0, sevDist.Moderate || 0, sevDist.Severe || 0],
+        backgroundColor: [chartColors.green, chartColors.amber, chartColors.red],
+        borderRadius: 6,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      ...defaultOpts,
+      plugins: { ...defaultOpts.plugins, legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: "rgba(255,255,255,0.6)" } },
+        y: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "rgba(255,255,255,0.5)", stepSize: 1 } }
+      }
+    }
+  });
+}
+
+// Clear History
+document.getElementById("clearHistoryBtn").addEventListener("click", () => {
+  localStorage.removeItem(SCAN_HISTORY_KEY);
+  loadDashboard();
+});
+
+// Load dashboard on init
+loadDashboard();
