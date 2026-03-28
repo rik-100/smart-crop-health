@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+venv/
+venv310/
+venv311/
+.venv/
+
+# ML Models (large files)
+*.h5
+*.pt
+
+# Data files
+
+# Environment variables
+.env
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+*.npy
+data/*
+!data/.gitkeep
