@@ -5,11 +5,11 @@ import numpy as np
 import tensorflow as tf
 import base64
 import json
+import uuid
 import google.generativeai as genai
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from tensorflow.keras.models import load_model, Model
-from werkzeug.utils import secure_filename
 from ultralytics import YOLO
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,6 +24,9 @@ UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+# Reject oversized uploads before they hit disk (Flask returns 413).
+app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB
+MAX_CHAT_MESSAGE_LENGTH = 2000
 
 MODEL_PATH_1 = os.path.join(BASE_DIR, "ml", "models", "best_model.h5")
 MODEL_PATH_2 = os.path.join(BASE_DIR, "ml", "models", "plant_disease_model.h5")
@@ -38,16 +41,70 @@ try:
 except Exception as e:
     print("Failed to download model:", e)
 
+# Class order used by Keras `flow_from_directory` during training
+# (alphabetically sorted sub-directory names of data/dataset/train).
+# `data/` is git-ignored, so this fallback lets the server start on a
+# fresh clone that only has the downloaded model weights.
+DEFAULT_CLASS_NAMES = sorted([
+    "Pepper__bell___Bacterial_spot",
+    "Pepper__bell___healthy",
+    "Potato___Early_blight",
+    "Potato___Late_blight",
+    "Potato___healthy",
+    "Tomato_Bacterial_spot",
+    "Tomato_Early_blight",
+    "Tomato_Late_blight",
+    "Tomato_Leaf_Mold",
+    "Tomato_Septoria_leaf_spot",
+    "Tomato_Spider_mites_Two_spotted_spider_mite",
+    "Tomato__Target_Spot",
+    "Tomato__Tomato_YellowLeaf__Curl_Virus",
+    "Tomato__Tomato_mosaic_virus",
+    "Tomato_healthy",
+])
+
+
+def load_class_names():
+    """Return class labels in the same order the model was trained with.
+
+    Only directories are considered, mirroring `flow_from_directory`; stray
+    files such as `.DS_Store` would otherwise shift every class index and
+    silently produce wrong predictions.
+    """
+    if os.path.isdir(DATASET_PATH):
+        names = sorted(
+            d for d in os.listdir(DATASET_PATH)
+            if os.path.isdir(os.path.join(DATASET_PATH, d))
+        )
+        if names:
+            return names
+    print(f"Dataset directory not found at {DATASET_PATH}; using built-in class list.")
+    return list(DEFAULT_CLASS_NAMES)
+
+
+def num_outputs(m):
+    return int(m.outputs[0].shape[-1])
+
+
 print("Loading ensemble models...")
 model = load_model(MODEL_PATH_1)
+model_2 = None
 try:
     model_2 = load_model(MODEL_PATH_2)
+    if num_outputs(model_2) != num_outputs(model):
+        print("Secondary model has a different number of classes; ignoring it.")
+        model_2 = None
 except Exception as e:
     print("Secondary model not found. Proceeding with single model.", e)
-    model_2 = model
 
-class_names = sorted(os.listdir(DATASET_PATH))
-print(f"Ensemble Models loaded. Classes ({len(class_names)}): {class_names}")
+class_names = load_class_names()
+if len(class_names) != num_outputs(model):
+    raise RuntimeError(
+        f"Model predicts {num_outputs(model)} classes but {len(class_names)} "
+        f"class names were found. Check {DATASET_PATH}."
+    )
+print(f"Models loaded (ensemble={'on' if model_2 is not None else 'off'}). "
+      f"Classes ({len(class_names)}): {class_names}")
 
 
 load_dotenv(os.path.join(BASE_DIR, ".env"))
@@ -388,6 +445,17 @@ RECOMMENDATIONS = {
     }
 }
 
+def normalize_class_name(name):
+    """Normalize class names so underscore/case differences don't break lookups."""
+    return "".join(char.lower() for char in name if char.isalnum())
+
+
+NORMALIZED_RECOMMENDATIONS = {
+    normalize_class_name(key): value
+    for key, value in RECOMMENDATIONS.items()
+}
+
+
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -486,7 +554,11 @@ def predict():
     if not allowed_file(file.filename):
         return jsonify({"error": "Invalid file type. Use JPG, PNG or WEBP"}), 400
 
-    filename = secure_filename(file.filename)
+    # Use a unique name: concurrent uploads that share a filename (e.g.
+    # "image.jpg" from phones) would otherwise overwrite each other and the
+    # `finally` cleanup could delete another request's file mid-analysis.
+    ext = file.filename.rsplit(".", 1)[1].lower()  # validated by allowed_file
+    filename = f"{uuid.uuid4().hex}.{ext}"
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
     file.save(filepath)
 
@@ -517,10 +589,10 @@ def predict():
             })
 
         # ── Predict (Ensemble) ───────────────────────────
-        preds_1 = model.predict(img_array, verbose=0)
-        preds_2 = model_2.predict(img_array, verbose=0)
-
-        predictions = (preds_1 + preds_2) / 2.0
+        predictions = model.predict(img_array, verbose=0)
+        if model_2 is not None:
+            preds_2 = model_2.predict(img_array, verbose=0)
+            predictions = (predictions + preds_2) / 2.0
 
         pred_class_index = int(
             np.argmax(predictions[0])
@@ -571,21 +643,7 @@ def predict():
         overlay_b64 = image_to_base64(overlay_img)
 
         # ── Recommendation ───────────────────────────────
-        # Normalize class names so differences in
-        # underscores/capitalization don't break the lookup.
-        def normalize_class_name(name):
-            return "".join(
-                char.lower()
-                for char in name
-                if char.isalnum()
-            )
-
-        normalized_recommendations = {
-            normalize_class_name(key): value
-            for key, value in RECOMMENDATIONS.items()
-        }
-
-        rec = normalized_recommendations.get(
+        rec = NORMALIZED_RECOMMENDATIONS.get(
             normalize_class_name(predicted_class),
             {
                 "description": f"Analysis complete for {predicted_label}.",
@@ -639,20 +697,29 @@ def predict():
 
         return jsonify(result)
 
-    except Exception as e:
-        return jsonify({
-            "error": str(e)
-        }), 500
+    except ValueError as e:
+        # e.g. corrupt / non-image payload with an allowed extension
+        return jsonify({"error": f"Could not process image: {e}"}), 400
+
+    except Exception:
+        app.logger.exception("Prediction failed")
+        return jsonify({"error": "Internal error while analysing the image"}), 500
 
     finally:
         if os.path.exists(filepath):
             os.remove(filepath)
 
+@app.errorhandler(413)
+def file_too_large(_e):
+    limit_mb = app.config["MAX_CONTENT_LENGTH"] // (1024 * 1024)
+    return jsonify({"error": f"File too large. Maximum size is {limit_mb} MB."}), 413
+
+
 @app.route("/api/health", methods=["GET"])
 def health_check():
     return jsonify({
         "status": "online",
-        "model": "Ensemble Soft-Voting (MobileNetV2)",
+        "model": "Ensemble Soft-Voting (MobileNetV2)" if model_2 is not None else "MobileNetV2",
         "classes": len(class_names),
         "version": "1.0.0",
         "llm_enabled": bool(GEMINI_API_KEY)
@@ -660,12 +727,15 @@ def health_check():
 
 @app.route("/api/chat", methods=["POST"])
 def chat():
-    data = request.json
-    if not data or "message" not in data:
+    # silent=True: a missing/invalid JSON body yields None instead of an
+    # unhandled 415/400 HTML error page that the frontend can't parse.
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or not isinstance(data.get("message"), str) \
+            or not data["message"].strip():
         return jsonify({"error": "No message provided"}), 400
 
-    user_msg = data["message"]
-    context_data = data.get("context", "None")
+    user_msg = data["message"].strip()[:MAX_CHAT_MESSAGE_LENGTH]
+    context_data = str(data.get("context") or "None")[:500]
 
     if not GEMINI_API_KEY:
         return jsonify({
@@ -706,7 +776,8 @@ User: {message}
             return jsonify({
                 "response": "I'm currently experiencing high demand. Please wait a moment and try again. (API rate limit reached)"
             })
-        return jsonify({"error": error_msg}), 500
+        app.logger.exception("Chat request failed")
+        return jsonify({"error": "The assistant is unavailable right now. Please try again."}), 500
 
 # MAIN
 

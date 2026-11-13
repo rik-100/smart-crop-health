@@ -2,6 +2,17 @@
 
 const API_BASE = "/api";
 
+// Escape untrusted text (user input, LLM output, stored history) before it
+// is interpolated into innerHTML, to prevent HTML/script injection.
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 const I18N = {
   en: {
     nav_analyzer: "Analyzer",
@@ -370,8 +381,9 @@ async function runAnalysis() {
     clearInterval(stepTimer);
 
     if (!resp.ok) {
-      const err = await resp.json();
-      throw new Error(err.error || "Server error");
+      // Error bodies may not be JSON (e.g. proxy/HTML error pages).
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error || `Server error (${resp.status})`);
     }
 
     const data = await resp.json();
@@ -485,7 +497,7 @@ function displayResults(data) {
     if (data.detections && data.detections.length > 0) {
       document.getElementById("yoloDetections").innerHTML = data.detections.map(
         d => `<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding:4px 0;">
-                <span style="color:var(--text-2);font-weight:600;text-transform:capitalize;">${d.class}</span>
+                <span style="color:var(--text-2);font-weight:600;text-transform:capitalize;">${escapeHtml(d.class)}</span>
                 <span style="color:var(--green-400);">${d.confidence.toFixed(1)}%</span>
               </div>`
       ).join("");
@@ -857,7 +869,7 @@ async function sendChatMsg() {
   if (!msg) return;
   
   // Append User Msg
-  chatBody.innerHTML += `<div class="chat-msg user"><div class="msg-bubble">${msg}</div></div>`;
+  chatBody.innerHTML += `<div class="chat-msg user"><div class="msg-bubble">${escapeHtml(msg)}</div></div>`;
   chatInput.value = "";
   chatBody.scrollTop = chatBody.scrollHeight;
 
@@ -875,7 +887,7 @@ async function sendChatMsg() {
     const data = await r.json();
     
     // Convert markdown bold to html (basic support)
-    const formatted = (data.response || data.error || "Error generating response")
+    const formatted = escapeHtml(data.response || data.error || "Error generating response")
       .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
       .replace(/\n/g, "<br>");
 
@@ -977,7 +989,7 @@ function loadDashboard() {
     return `<tr>
       <td>${dateStr}</td>
       <td>${cropIcon} ${s.crop}</td>
-      <td>${s.disease}</td>
+      <td>${escapeHtml(s.disease)}</td>
       <td>${s.confidence.toFixed(1)}%</td>
       <td><span class="dash-severity-pill ${sevCls}">${sevText}</span></td>
       <td><span class="dash-status-pill ${statusCls}">${statusText}</span></td>

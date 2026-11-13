@@ -80,11 +80,25 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Run the Smart Server
+### 3. Configure Environment (optional)
+
+The AI agronomist chat uses Google Gemini. Create a `.env` file in the repo root (it is git-ignored):
 
 ```bash
-python app.py
+GEMINI_API_KEY=your-key-here
 ```
+
+Without a key the app still runs; the chat answers in mock mode.
+
+### 4. Run the Smart Server
+
+From the repository root:
+
+```bash
+python backend/app.py
+```
+
+On first start the trained model is downloaded to `ml/models/best_model.h5`. The local `data/` dataset is optional for serving; the built-in class list is used when it is absent.
 
 The terminal will log out:
 ```
