@@ -6,7 +6,7 @@ import tensorflow as tf
 import base64
 import json
 import uuid
-import google.generativeai as genai
+from google import genai
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from tensorflow.keras.models import load_model, Model
@@ -110,11 +110,13 @@ print(f"Models loaded (ensemble={'on' if model_2 is not None else 'off'}). "
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-flash-lite-latest")
+gemini_client = None
 
 if not GEMINI_API_KEY:
     print("WARNING: GEMINI_API_KEY is not configured.")
 else:
-    genai.configure(api_key=GEMINI_API_KEY)
+    gemini_client = genai.Client(api_key=GEMINI_API_KEY)
 
 grad_model = Model(
     inputs=model.input,
@@ -722,7 +724,7 @@ def health_check():
         "model": "Ensemble Soft-Voting (MobileNetV2)" if model_2 is not None else "MobileNetV2",
         "classes": len(class_names),
         "version": "1.0.0",
-        "llm_enabled": bool(GEMINI_API_KEY)
+        "llm_enabled": gemini_client is not None
     })
 
 @app.route("/api/chat", methods=["POST"])
@@ -737,13 +739,12 @@ def chat():
     user_msg = data["message"].strip()[:MAX_CHAT_MESSAGE_LENGTH]
     context_data = str(data.get("context") or "None")[:500]
 
-    if not GEMINI_API_KEY:
+    if gemini_client is None:
         return jsonify({
             "response": "I am operating in mock mode because the `GEMINI_API_KEY` is not set on the backend. Please restart the Flask server with the key configured to use my generative AI capabilities."
         })
 
     try:
-        chat_model = genai.GenerativeModel("gemini-flash-lite-latest")
         
         disease_context = context_data
         message = user_msg
@@ -767,7 +768,10 @@ Tone:
 
 User: {message}
 """
-        response = chat_model.generate_content(system_prompt)
+        response = gemini_client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=system_prompt,
+        )
 
         return jsonify({"response": response.text})
     except Exception as e:

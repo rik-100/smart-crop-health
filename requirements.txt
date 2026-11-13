@@ -77,5 +77,5 @@ Werkzeug==3.1.5
 wrapt==2.0.1
 ultralytics
 gdown
-google-generativeai>=0.4.6
+google-genai>=1.0.0
 python-dotenv
